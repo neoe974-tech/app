@@ -1,0 +1,92 @@
+{
+  "name": "musicstream-fullstack-complete",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "migrate": "node scripts/init-db.js"
+  },
+  "dependencies": {
+    "next": "13.5.6",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "chart.js": "^4.4.0",
+    "axios": "^1.4.0",
+    "cookie": "^0.5.0",
+    "sqlite3": "^5.1.6",
+    "better-sqlite3": "^8.5.0",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^2.4.3",
+    "node-fetch": "^2.6.7"
+  }
+}
+MusicStream Fullstack Complete Prototype
+=======================================
+
+What's included
+- Next.js app (pages, styles)
+- Admin dashboard and artist pages
+- API routes for OAuth and token handling that store tokens in a server-side SQLite DB (example using better-sqlite3)
+- scripts/init-db.js to create and seed the local DB
+- Vercel config (vercel.json) with placeholders for secrets
+
+Important security & deployment notes
+- This prototype demonstrates server-side token storage but is NOT production hardened.
+- For production, ensure:
+  - Use a managed secrets store / environment variables (do NOT commit secrets)
+  - Use HTTPS and secure httpOnly cookies for sessions
+  - Implement proper state validation for OAuth (store state in DB or signed cookie)
+  - Rotate client secrets and never expose them in client-side code
+  - Store refresh tokens securely and scope access appropriately
+
+How to run locally
+1. Install dependencies:
+   npm install
+2. Initialize local DB (creates data/musicstream.db):
+   npm run migrate
+3. Create a .env.local file at project root with:
+   SPOTIFY_CLIENT_ID=your_client_id
+   SPOTIFY_CLIENT_SECRET=your_client_secret
+   SPOTIFY_REDIRECT_URI=http://localhost:3000/api/auth/spotify/callback
+   DB_PATH=./data/musicstream.db
+4. Run dev server:
+   npm run dev
+5. Go to http://localhost:3000/admin and click "Connect Spotify" to start OAuth flow (requires valid Spotify app credentials)
+
+Files of interest
+- pages/api/auth/spotify/url.js  -> constructs Spotify authorization URL and sets a state cookie
+- pages/api/auth/spotify/callback.js -> exchanges code for tokens and stores them in SQLite
+- pages/api/auth/spotify/refresh.js -> refreshes token from stored refresh_token
+- scripts/init-db.js -> creates DB and seeds artists
+- pages/api/db/artists.js -> reads artists from DB (fallbacks to mock)
+
+Deploying to Vercel
+- Create a new Vercel project and connect your Git repo.
+- Add environment variables via the Vercel dashboard (spotify_client_id, spotify_client_secret)
+- Update vercel.json if your deployment URL differs from the placeholder
+- Deploy — monitor logs for token exchange behavior and ensure callbacks match redirect URI
+
+DISCLAIMER
+- This code is for prototyping and demonstration purposes only. Carefully review and harden before using in production.
+
+{
+  "version": 2,
+  "builds": [
+    { "src": "next.config.js", "use": "@vercel/next" }
+  ],
+  "env": {
+    "SPOTIFY_CLIENT_ID": "@spotify_client_id",
+    "SPOTIFY_CLIENT_SECRET": "@spotify_client_secret",
+    "SPOTIFY_REDIRECT_URI": "https://your-deployment.vercel.app/api/auth/spotify/callback"
+  }
+}
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+}
+
+module.exports = nextConfig
